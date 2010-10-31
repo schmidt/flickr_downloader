@@ -1,0 +1,6 @@
+When finished, this will hopefully be a JRuby-based GUI Application enabling my
+family and friends to download entire Flickr photo sets, that I have share with
+them via Flickr's GuestPass feature.
+
+At the moment it is simply a Ruby script that's requiring the mechanize gem to
+do the serious work.
