@@ -20,6 +20,7 @@ class ShowDirectoryDialog
   GridData         = org.eclipse.swt.layout.GridData
   GridLayout       = org.eclipse.swt.layout.GridLayout
   Label            = org.eclipse.swt.widgets.Label
+  ProgressBar      = org.eclipse.swt.widgets.ProgressBar
   SelectionAdapter = org.eclipse.swt.events.SelectionAdapter
   Shell            = org.eclipse.swt.widgets.Shell
   SWT              = org.eclipse.swt.SWT
@@ -54,7 +55,6 @@ class ShowDirectoryDialog
     Label.new(@shell, SWT::NONE).text = "Shared link:"
 
     @url_box = Text.new(@shell, SWT::BORDER)
-
     layout_data = GridData.new(GridData::FILL_HORIZONTAL)
     layout_data.horizontalSpan = 4
     @url_box.layout_data = layout_data
@@ -67,7 +67,6 @@ class ShowDirectoryDialog
     # Create the text box extra wide to show long paths
     @dir_box = Text.new(@shell, SWT::BORDER)
     layout_data = GridData.new(GridData::FILL_HORIZONTAL)
-
     layout_data.horizontalSpan = 4
     @dir_box.layout_data = layout_data 
 
@@ -78,6 +77,11 @@ class ShowDirectoryDialog
     @dir_button.addSelectionListener do
       handle_open_dialog
     end
+
+    @progress_bar = ProgressBar.new(@shell, SWT::SMOOTH)
+    layout_data = GridData.new(GridData::FILL_HORIZONTAL)
+    layout_data.horizontalSpan = 6
+    @progress_bar.layout_data = layout_data 
 
 
 		@start_button = Button.new(@shell, SWT::PUSH)
@@ -110,15 +114,23 @@ class ShowDirectoryDialog
 
     unless folder.empty? || url.empty?
       disable_controls
+      @progress_bar.set_selection 0
       display = Display.get_current
 
       Thread.new do
         begin
           downloader = Downloader.new(:folder => folder, :url => url)
 
-          downloader.on_photo_saved do
-            print '.'
-            $stdout.flush
+          downloader.on_photo_saved do |photo, index|
+            display.sync_exec do
+              #
+              #      photo.size         index + 1
+              # -------------------  =  ---------
+              # progess_bar.maximum       ???
+              @progress_bar.set_selection(
+                @progress_bar.maximum * (index + 1) / downloader.photos.size
+              )
+            end
           end
 
           downloader.download
@@ -126,6 +138,7 @@ class ShowDirectoryDialog
           print "\n"
 
           display.sync_exec do
+            @progress_bar.set_selection @progress_bar.maximum
             enable_controls
           end
         rescue

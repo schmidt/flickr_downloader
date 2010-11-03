@@ -15,22 +15,26 @@ class Downloader
     @on_photo_saved = block
   end
 
+  def photos
+    @photos || []
+  end
+
   def download
     prepare_output
 
-    a = Agent.new(@logger)
+    agent = Agent.new(@logger)
 
-    photos = []
-    a.get(@url) do |page|
-      photos = page.search(".//img[@width='75'][@height='75']/..").map do |node|
-        Photo.new(:details_url => node['href'], :agent => a)
+    @photos = []
+    agent.get(@url) do |page|
+      @photos = page.search(".//img[@width='75'][@height='75']/..").map do |a|
+        Photo.new(:details_url => a['href'], :agent => agent)
       end
     end
 
-    photos.each do |photo|
+    @photos.each_with_index do |photo, index|
       save(photo)
       if @on_photo_saved
-        @on_photo_saved.call(photo)
+        @on_photo_saved.call(photo, index)
       end
     end
   end
