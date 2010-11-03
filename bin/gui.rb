@@ -1,5 +1,6 @@
 require 'java'
-require 'swt'
+require File.join(File.dirname(__FILE__), '..', 'lib', 'swt')
+require File.join(File.dirname(__FILE__), '..', 'lib', 'downloader')
 
 # This code is based on 
 #
@@ -104,17 +105,33 @@ class ShowDirectoryDialog
   end
 
   def handle_start_download
-    disable_controls
-    display = Display.get_current
-    Thread.new do
-      begin
-        sleep 1
-        display.sync_exec do
-          enable_controls
+    folder = @dir_box.text.strip
+    url = @url_box.text.strip
+
+    unless folder.empty? || url.empty?
+      disable_controls
+      display = Display.get_current
+
+      Thread.new do
+        begin
+          downloader = Downloader.new(:folder => folder, :url => url)
+
+          downloader.on_photo_saved do
+            print '.'
+            $stdout.flush
+          end
+
+          downloader.download
+
+          print "\n"
+
+          display.sync_exec do
+            enable_controls
+          end
+        rescue
+          puts $!
+          puts $@
         end
-      rescue
-        puts $!
-        puts $@
       end
     end
   end
