@@ -11,6 +11,10 @@ class Downloader
     @logger = $stdout
   end
 
+  def on_init_done(&block)
+    @on_init_done = block
+  end
+
   def on_photo_saved(&block)
     @on_photo_saved = block
   end
@@ -29,6 +33,10 @@ class Downloader
       @photos = page.search(".//img[@width='75'][@height='75']/..").map do |a|
         Photo.new(:details_url => a['href'], :agent => agent)
       end
+    end
+
+    if @on_init_done
+      @on_init_done.call(photos)
     end
 
     @photos.each_with_index do |photo, index|

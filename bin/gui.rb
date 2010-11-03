@@ -83,6 +83,11 @@ class ShowDirectoryDialog
     layout_data.horizontalSpan = 6
     @progress_bar.layout_data = layout_data 
 
+    @status_label = Label.new(@shell, SWT::BORDER)
+    layout_data = GridData.new(GridData::FILL_HORIZONTAL)
+    layout_data.horizontalSpan = 3
+    @status_label.layout_data = layout_data 
+
 
 		@start_button = Button.new(@shell, SWT::PUSH)
 		@start_button.text = "Start downloading"
@@ -114,31 +119,29 @@ class ShowDirectoryDialog
 
     unless folder.empty? || url.empty?
       disable_controls
-      @progress_bar.set_selection 0
+      update_status_text
       display = Display.get_current
 
       Thread.new do
         begin
           downloader = Downloader.new(:folder => folder, :url => url)
 
+          downloader.on_init_done do
+            display.sync_exec do
+              update_status_text(downloader.photos.size)
+            end
+          end
+
           downloader.on_photo_saved do |photo, index|
             display.sync_exec do
-              #
-              #      photo.size         index + 1
-              # -------------------  =  ---------
-              # progess_bar.maximum       ???
-              @progress_bar.set_selection(
-                @progress_bar.maximum * (index + 1) / downloader.photos.size
-              )
+              update_status_text(downloader.photos.size, index + 1)
             end
           end
 
           downloader.download
 
-          print "\n"
-
           display.sync_exec do
-            @progress_bar.set_selection @progress_bar.maximum
+            update_status_text(downloader.photos.size, downloader.photos.size)
             enable_controls
           end
         rescue
@@ -146,6 +149,23 @@ class ShowDirectoryDialog
           puts $@
         end
       end
+    end
+  end
+
+  def update_status_text(size = nil, index = nil)
+    if !size && !index
+      @status_label.text = 'Fetching gallery information...'
+      @progress_bar.selection = 0
+    elsif !index
+      @status_label.text = "Downloading #{size} images..."
+      @progress_bar.maximum = size
+      @progress_bar.selection = 0
+    elsif size != index
+      @status_label.text = "Downloading #{size} images - #{index} done..."
+      @progress_bar.selection = index
+    else
+      @status_label.text = "Downloaded #{size} images."
+      @progress_bar.selection = @progress_bar.maximum
     end
   end
 
