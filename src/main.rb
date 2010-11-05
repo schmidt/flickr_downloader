@@ -1,6 +1,4 @@
-require 'java'
-require File.join(File.dirname(__FILE__), '..', 'lib', 'swt')
-require File.join(File.dirname(__FILE__), '..', 'lib', 'downloader')
+require File.join(File.dirname(__FILE__), 'downloader')
 
 # This code is based on 
 #

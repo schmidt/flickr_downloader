@@ -146,3 +146,8 @@ class Agent
     @mechanize.get(*args, &block)
   end
 end
+
+%Q{
+http://flickr.com/gp/schmidtwisser/5ev2Q9
+/Users/schmidt/Projekte/github/flickr/photos
+}

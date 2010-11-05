@@ -2,5 +2,36 @@ When finished, this will hopefully be a JRuby-based GUI Application enabling my
 family and friends to download entire Flickr photo sets, that I have shared
 with them via Flickr's GuestPass feature.
 
-At the moment it is simply a Ruby script that's requiring the mechanize gem to
-do the serious work.
+Installation
+============
+
+In order to make it basically work you will need to download the following jars
+into lib/java. 
+
+* swt.jar
+* jruby-complete.jar 
+
+Additionally you need to gem unpack the 
+following gems in lib/ruby
+
+ * mechanize-1.0.0
+ * nokogiri-1.4.3.1-java
+ * weakling-0.0.4-java
+
+This app was only tested using Mac OS X 10.6.4.
+
+It currently works using the start.sh if using JRuby 1.5.3 and when mechanize 
+and its dependencies are installed via rubygems.
+
+It also works after running the rawr rake task `rake rawr:bundle:app`. This
+will create a jar in package/jar which may be executed with 
+`java -jar -XstartOnFirstThread package/jar/flickr.jar`. This also seems to 
+rely on an installed mechanize gem.
+
+
+Known Problems
+==============
+
+The Mac OS X app bundle created by Rawr is currently not working due to the 
+fact, that SWT expects to be loaded in the main thread (ref. SWTException:
+Invalid thread access). We are working on it.
